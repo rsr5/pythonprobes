@@ -102,6 +102,11 @@ class build_ext(_build_ext):
 
 
 setup(
+    name='pythonprobes',
+    version='1.0',
+    description='Static DTrace Probes for Python Applications',
+    author='rsr5',
+    url='https://github.com/rsr5/pythonprobes',
     cmdclass={'build_ext': build_ext},
     ext_modules=[Extension("probe", ["src/probe.pyx"],
                            include_dirs=["include"])]

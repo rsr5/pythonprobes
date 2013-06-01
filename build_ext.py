@@ -1,20 +1,22 @@
 
-from types import *
 
 from subprocess import Popen
 
 from distutils.command.build_ext import build_ext as _build_ext
 from distutils.dep_util import newer_group
 from distutils import log
+from distutils.errors import DistutilsSetupError
+from types import ListType, TupleType
+
 
 class build_ext(_build_ext):
     def build_extension(self, ext):
         sources = ext.sources
         if sources is None or type(sources) not in (ListType, TupleType):
-            raise DistutilsSetupError, \
+            raise DistutilsSetupError(\
                   ("in 'ext_modules' option (extension '%s'), " +
                    "'sources' must be present and must be " +
-                   "a list of source filenames") % ext.name
+                   "a list of source filenames") % ext.name)
         sources = list(sources)
 
         ext_path = self.get_ext_fullpath(ext.name)
@@ -80,10 +82,10 @@ class build_ext(_build_ext):
         language = ext.language or self.compiler.detect_language(sources)
 
         args = ['/usr/sbin/dtrace', '-G', '-32', '-s', 'src/probedefs.d']
-	args.extend(objects)
-	print "running", " ".join(args)
+        args.extend(objects)
+        print "running", " ".join(args)
         Popen(args).communicate()
-	objects.append("probedefs.o")
+        objects.append("probedefs.o")
 
         self.compiler.link_shared_object(
             objects, ext_path,
@@ -95,4 +97,3 @@ class build_ext(_build_ext):
             debug=self.debug,
             build_temp=self.build_temp,
             target_lang=language)
-

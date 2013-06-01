@@ -7,8 +7,12 @@ from distutils.core import setup
 from distutils.extension import Extension
 from distutils.errors import DistutilsSetupError
 from types import ListType, TupleType
+from os.path import exists
 
 from Cython.Distutils import build_ext as _build_ext
+
+
+SUPPORT_DTRACE = exists("/usr/sbin/dtrace")
 
 
 class build_ext(_build_ext):
@@ -83,11 +87,12 @@ class build_ext(_build_ext):
         # Detect target language, if not provided
         language = ext.language or self.compiler.detect_language(sources)
 
-        args = ['/usr/sbin/dtrace', '-G', '-32', '-s', 'src/probedefs.d']
-        args.extend(objects)
-        print "running", " ".join(args)
-        Popen(args).communicate()
-        objects.append("probedefs.o")
+        if SUPPORT_DTRACE:
+            args = ['/usr/sbin/dtrace', '-G', '-32', '-s', 'src/probedefs.d']
+            args.extend(objects)
+            print "running", " ".join(args)
+            Popen(args).communicate()
+            objects.append("probedefs.o")
 
         self.compiler.link_shared_object(
             objects, ext_path,
@@ -101,6 +106,11 @@ class build_ext(_build_ext):
             target_lang=language)
 
 
+PYX_FILE = "src/probe.pyx" \
+           if SUPPORT_DTRACE \
+           else "src/dummy_probe.pyx"
+
+
 setup(
     name='pythonprobes',
     version='1.0',
@@ -108,6 +118,6 @@ setup(
     author='rsr5',
     url='https://github.com/rsr5/pythonprobes',
     cmdclass={'build_ext': build_ext},
-    ext_modules=[Extension("probe", ["src/probe.pyx"],
+    ext_modules=[Extension("probe", [PYX_FILE],
                            include_dirs=["include"])]
 )

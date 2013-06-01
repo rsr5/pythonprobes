@@ -4,9 +4,9 @@ cimport probe
 
 def dtrace_probe(*args, **kwargs):
     """
-    Fires the static dtrace probe.  You must pass anything up to 5 strings to
+    Fires the static dtrace probe.  You may pass anything up to 5 strings to
     this function and these will be available from dtrace.  For example with
-    ``copyinstr(arg0)``.  A string contieing the work ``null`` is returned
+    ``copyinstr(arg0)``.  A string containing the work ``null`` is returned
     for any args that are not passed.  ``null`` was chosen so that it would
     hopefully not clash with any likely strings users would like to pass to
     the probe.
@@ -15,7 +15,8 @@ def dtrace_probe(*args, **kwargs):
     def new_args():
         """
         Generator that converts the python strings to byte strings and then
-        returns their addresses to be passed to the dtrace probe function below.
+        returns their addresses to be passed to the dtrace probe function
+        below.
         """
         cdef bytes py_bytes
         cdef char* arg
@@ -23,7 +24,8 @@ def dtrace_probe(*args, **kwargs):
 
         for x in xrange(5):
             try:
-                arg = args[x]
+                strarg = str(args[x])  # Make double sure we have a string.
+                arg = strarg
             except IndexError:
                 arg = "null"
 
@@ -31,7 +33,7 @@ def dtrace_probe(*args, **kwargs):
             arg = py_bytes
             addr = <unsigned long>arg
 
-            # Return the strings and addresses as otherwise the strigns get
+            # Return the strings and addresses as otherwise the strings get
             # thrown away before a D script has time to copy the string over
             # using copyinstr()
             yield (py_bytes, arg, addr)

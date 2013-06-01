@@ -10,6 +10,6 @@ pythonprobes*:::pythonprobe
     printf("%s || ", copyinstr(arg1));
     printf("%s || ", copyinstr(arg2));
     printf("%s || ", copyinstr(arg3));
-    printf("%s", copyinstr(arg4));
+    printf("%s\n", copyinstr(arg4));
 }
 

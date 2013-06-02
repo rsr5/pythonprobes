@@ -108,13 +108,20 @@ C_FILE = 'src/probe.c' \
          else "src/dummy_probe.c"
 
 
+extensions = [Extension('probe', [C_FILE],
+                       include_dirs=['include'])]
+
+if SUPPORT_DTRACE:
+    extensions.append(Extension("profiler",
+                      sources=["src/profile.c", "src/unset_trace.c"],
+                      include_dirs=['include']))
+
 setup(
     name='pythonprobes',
     version='1.0',
     description='Static DTrace Probes for Python Applications',
     author='rsr5',
     url='https://github.com/rsr5/pythonprobes',
-    ext_modules=[Extension('probe', [C_FILE],
-                           include_dirs=['include'])],
+    ext_modules=extensions,
     cmdclass={'build_ext': build_ext}
 )

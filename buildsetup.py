@@ -110,6 +110,13 @@ PYX_FILE = "src/probe.pyx" \
            if SUPPORT_DTRACE \
            else "src/dummy_probe.pyx"
 
+extensions = [Extension("probe", [PYX_FILE],
+                        include_dirs=["include"])]
+
+if SUPPORT_DTRACE:
+    extensions.append(Extension("profiler",
+                      sources=["src/profile.pyx", "src/unset_trace.c"],
+                      depends=['src/python25.pxd']))
 
 setup(
     name='pythonprobes',
@@ -118,6 +125,5 @@ setup(
     author='rsr5',
     url='https://github.com/rsr5/pythonprobes',
     cmdclass={'build_ext': build_ext},
-    ext_modules=[Extension("probe", [PYX_FILE],
-                           include_dirs=["include"])]
+    ext_modules=extensions
 )

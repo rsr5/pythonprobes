@@ -50,6 +50,7 @@ cdef class DTraceProfiler:
             self.disable()
         return self
 
+
 cdef int python_trace_callback(object self, PyFrameObject *py_frame, int what,
     PyObject *arg):
     """ The PyEval_SetTrace() callback.  Fires the DTrace probe.

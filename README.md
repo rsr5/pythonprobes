@@ -68,3 +68,80 @@ null || null || null || null || null
 0 || 1 || 2 || 3 || 4
 
 ```
+
+DTraceProfiler
+==============
+
+Is a line level profiler for Python that utilizes the ```pythonprobes```
+package above and DTrace to gather line level profiling statistics on a
+Python program.
+
+Consider the following Python program:
+
+```Python
+from time import sleep
+
+from profiler import DTraceProfiler
+
+def tester():
+    print "Hello"
+    x = 1
+    x = x + x + x
+    print "Good Bye"
+    sleep(1)
+
+def main():
+    for i in xrange(15):
+        tester()
+
+pr = DTraceProfiler()
+pr.run("main()")
+```
+
+When run in conjunction with the following D script:
+
+```
+#!/usr/sbin/dtrace -qs
+
+self uint64_t lasttime;
+
+BEGIN{
+    self->lasttime = 0;
+}
+
+pythonprobes*:::pythonprobe
+/self->lasttime == 0/
+{
+    self->lasttime = walltimestamp;
+}
+
+
+pythonprobes*:::pythonprobe
+/self->lasttime != 0/
+{
+   @[copyinstr(arg1), copyinstr(arg0)] = sum(walltimestamp - self->lasttime);
+   self->lasttime = walltimestamp;
+}
+```
+
+The following output is returned after pressing ctrl-c on the D script.
+
+```
+root@southside:~# ~robin/workspace/dprobes/examples/profiler.d 
+^C
+
+  1                                                   /var/tmp/test.py                                                  0
+  1                                                   <string>                                                          0
+  14                                                  /var/tmp/test.py                                                  0
+  6                                                   /var/tmp/test.py                                                  0
+  7                                                   /var/tmp/test.py                                                  0
+  8                                                   /var/tmp/test.py                                                  0
+  9                                                   /var/tmp/test.py                                                  0
+  13                                                  /var/tmp/test.py                                            9919833
+  10                                                  /var/tmp/test.py                                        15020029009
+root@southside:~# 
+```
+
+We can see that the program spends around 15 seconds in line 10 of ```test.py```
+which is what would be expected with this program.  Line 10
+```for i in xrange(15):``` is the second hot spot.
